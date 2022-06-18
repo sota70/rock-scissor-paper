@@ -1,39 +1,6 @@
-import random
+from player import Player
 
-class Player:
-
-    def __init__(self, name: str):
-        self.__name = name
-        self.__decision = ""
-
-    def get_name(self) -> str:
-        return self.__name
-
-    def get_decision(self) -> str:
-        return self.__decision
-    
-    def play(self) -> str:
-        choices = RockScissorPaper.rock_scissor_paper_choices.values()
-        decision = random.choice(choices)
-        self.__decision = decision
-        return decision
-
-    def is_player_matched(player: any, condition: str) -> bool:
-        if not isinstance(player, Player):
-            return False
-        if player.get_decision() != condition:
-            return False
-        return True
-
-    def get_players(players: list[any], condition: str):
-        matched_players: list[Player] = []
-        for player in players:
-            if not Player.is_player_matched(player, condition):
-                continue
-            matched_players.append(player)
-        return matched_players
-
-class RockScissorPaper:
+class GameLeader:
 
     rock_scissor_paper_choices: dict[str, int] = {
             "グー": 0,
@@ -72,7 +39,7 @@ class RockScissorPaper:
                 return True
         return False
 
-    def generate_players(self, player_count):
+    def generate_players(self, player_count: int):
         players = []
         for i in range(0, player_count):
             player_name = f"Player{i}"
@@ -81,25 +48,31 @@ class RockScissorPaper:
             players.append(player)
         self.players = players
 
-    def __play(self, ai_count) -> bool:
-        self.generate_players(ai_count)
+    def __play(self, player_count: int) -> bool:
+        self.generate_players(player_count)
         self.play_count += 1
-        if self.is_all_diff(self.players.values()) or self.is_all_same(self.players.values()):
+        players_decision: list[int] = [ player.get_decision() for player in self.players ]
+        is_game_draw: bool = self.is_all_diff(players_decision) or self.is_all_same(players_decision)
+        rock: int = self.rock_scissor_paper_choices["グー"]
+        scissor: int = self.rock_scissor_paper_choices["チョキ"]
+        paper: int = self.rock_scissor_paper_choices["パー"]
+        if is_game_draw:
             return False
-        if not self.rock_scissor_paper_choices["グー"] in self.players.values():
-            self.winner_players = Player.get_players(self.players, "チョキ")
+        if not rock in players_decision:
+            self.winner_players = Player.get_players(self.players, scissor)
             self.last_choice = "チョキ"
             return True
-        if not self.rock_scissor_paper_choices["チョキ"] in self.players.values():
-            self.winner_players = Player.get_players(self.players, "パー")
+        if not scissor in players_decision:
+            self.winner_players = Player.get_players(self.players, paper)
             self.last_choice = "パー"
             return True
-        self.winner_players = Player.get_players(self.players, "グー")
+        self.winner_players = Player.get_players(self.players, rock)
         self.last_choice = "グー"
         return True
 
-    def play(self, ai_count):
+    def play(self, player_count: int):
         is_game_over = False
         while not is_game_over:
-            is_game_over = self.__play(ai_count)
-        print(f"ゲームのトータル回数: {self.play_count}\n勝者は{self.last_choice}のグループ: {self.winner_players}")
+            is_game_over = self.__play(player_count)
+        winner_players_name: list[str] = [ player.get_name() for player in self.winner_players ]
+        print(f"ゲームのトータル回数: {self.play_count}\n勝者は{self.last_choice}のグループ: {winner_players_name}")
